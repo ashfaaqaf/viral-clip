@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You won't believe what happens 😱 - Video</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; display: grid; place-items: center;
+    font-family: Roboto, system-ui, Arial, sans-serif;
+    background: #0f0f0f; color: #f1f1f1; overflow: hidden; padding: 16px;
+  }
+  #watch { width: min(680px, 100%); }
+  .player {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    background: radial-gradient(circle at 50% 40%, #2a2a2a, #000), #000;
+    border-radius: 12px; overflow: hidden; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .player::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,.6));
+  }
+  .play {
+    position: relative; width: 72px; height: 50px; background: #f00;
+    border-radius: 14px; display: grid; place-items: center; z-index: 1;
+    transition: background .15s;
+  }
+  .player:hover .play { background: #ff2626; }
+  .play::before {
+    content: ""; border-style: solid; border-width: 11px 0 11px 19px;
+    border-color: transparent transparent transparent #fff; margin-left: 4px;
+  }
+  .dur {
+    position: absolute; right: 8px; bottom: 8px; z-index: 1;
+    background: rgba(0,0,0,.8); color: #fff; font-size: 12px;
+    padding: 1px 4px; border-radius: 4px;
+  }
+  h1 { font-size: 1.15rem; margin: 14px 2px 10px; line-height: 1.3; }
+  .meta { display: flex; align-items: center; gap: 12px; padding: 0 2px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #c33; flex: none; }
+  .chan { font-size: .9rem; }
+  .chan b { display: block; }
+  .chan span { color: #aaa; font-size: .8rem; }
+  .views { margin: 10px 2px 0; color: #aaa; font-size: .85rem; }
+
+  #scream {
+    position: fixed; inset: 0; display: none; place-items: center;
+    background: #000; z-index: 10;
+  }
+  #scream.on { display: grid; animation: jolt .09s infinite; }
+  #scream svg { width: min(90vw, 90vh); height: min(90vw, 90vh); }
+  @keyframes jolt {
+    0%,100% { transform: translate(-6px, 3px) scale(1.00); }
+    50%     { transform: translate(7px, -5px) scale(1.04); }
+  }
+  #hint {
+    position: fixed; bottom: 16px; width: 100%; text-align: center;
+    color: #fff; font-size: 1rem; text-shadow: 1px 1px 0 #000; z-index: 12;
+  }
+  @media (prefers-reduced-motion: reduce) { #scream.on { animation: none; } }
+</style>
+</head>
+<body>
+  <!-- real scream audio, loops seamlessly via the loop attribute -->
+  <audio id="snd" src="scream.mp3" preload="auto" loop></audio>
+
+  <div id="watch">
+    <div class="player" id="play" role="button" aria-label="Play video">
+      <div class="play"></div>
+      <span class="dur">0:14</span>
+    </div>
+    <h1>You won't BELIEVE what happens at 0:14 😱😭 (MUST WATCH)</h1>
+    <div class="meta">
+      <div class="avatar"></div>
+      <div class="chan">
+        <b>Viral Clips Daily</b>
+        <span>2.3M views · 3 days ago</span>
+      </div>
+    </div>
+    <p class="views">🔥 Trending #1 · turn your sound on for this one</p>
+  </div>
+
+  <div id="scream" aria-hidden="true">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="200" fill="#000"/>
+      <ellipse cx="100" cy="105" rx="70" ry="90" fill="#d8d2c4"/>
+      <ellipse cx="70"  cy="80" rx="22" ry="30" fill="#000"/>
+      <ellipse cx="130" cy="80" rx="22" ry="30" fill="#000"/>
+      <circle cx="70"  cy="78" r="5" fill="#b00"/>
+      <circle cx="130" cy="78" r="5" fill="#b00"/>
+      <ellipse cx="100" cy="150" rx="26" ry="34" fill="#000"/>
+      <path d="M40 40 Q70 60 95 45" stroke="#000" stroke-width="5" fill="none"/>
+      <path d="M160 40 Q130 60 105 45" stroke="#000" stroke-width="5" fill="none"/>
+    </svg>
+    <div id="hint">press <b>Esc</b> (or tap) to make it stop 😈</div>
+  </div>
+
+<script>
+let actx, srcNode = null, running = false;
+const snd = document.getElementById("snd");
+
+// Route the <audio> through a limiter so it rides as loud as the page is
+// allowed. Still bounded by the target's own device volume — no page can raise that.
+function buildChain() {
+  if (srcNode) return;                       // MediaElementSource: once per element
+  srcNode = actx.createMediaElementSource(snd);
+  const comp = actx.createDynamicsCompressor();
+  comp.threshold.value = -8; comp.knee.value = 0;
+  comp.ratio.value = 20; comp.attack.value = 0.002; comp.release.value = 0.15;
+  const gain = actx.createGain(); gain.gain.value = 1.0;
+  srcNode.connect(comp); comp.connect(gain); gain.connect(actx.destination);
+}
+
+function start() {
+  if (running) return;
+  running = true;
+  document.getElementById("watch").style.display = "none";
+  document.getElementById("scream").classList.add("on");
+  if (navigator.vibrate) navigator.vibrate([500, 120, 500, 120, 900]);
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === "suspended") actx.resume();
+  buildChain();
+  snd.currentTime = 0;
+  snd.loop = true;                           // keep screaming until stopped
+  snd.play().catch(() => {});
+}
+
+function stop() {
+  running = false;
+  snd.pause();
+  document.getElementById("scream").classList.remove("on");
+  document.getElementById("watch").style.display = "";
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+
+document.getElementById("play").addEventListener("click", start);
+document.getElementById("scream").addEventListener("click", stop);
+addEventListener("keydown", e => { if (e.key === "Escape") stop(); });
+</script>
+</body>
+</html>
